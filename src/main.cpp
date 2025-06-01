@@ -6,12 +6,16 @@
 #include <iostream>
 #include "timing.hpp"
 
+#define MAX_OBJS            400
+#define KILL_AT_FRAME_LIMIT 0
+#define SHOW_FRAMES         1
 int main()
 {
+    initTiming();
     auto window = sf::RenderWindow(sf::VideoMode({conf::WINDOW_X, conf::WINDOW_Y}), "CMake SFML Project");
     window.setFramerateLimit(conf::FRAME_RATE);
 
-    Renderer renderer(window);
+    Renderer renderer(window, conf::WINDOW_X, conf::WINDOW_Y);
     verlet::Container container;
 
     container.setGravity(conf::GRAVITY);
@@ -20,51 +24,59 @@ int main()
     // container.setCircleConstraint(conf::WINDOW_X / 2.0f, conf::WINDOW_Y / 2.0f, conf::WINDOW_Y / 2.0f);
     container.setRectConstraint(conf::WINDOW_X / 2.0f, conf::WINDOW_Y / 2.0f, conf::WINDOW_X, conf::WINDOW_Y);
     
-    sf::Clock clock;
     sf::Clock startupClock;
-    float timeAvg = 0;
+    sf::Clock frameClock;
+    int frameCount = 0;
     bool addObj = true;
 
+    int addObjCount = 0;
     int numStreams = 4;
+    int fps = 0;
 
     while (window.isOpen())
     {
         auto start = std::chrono::high_resolution_clock::now();
         handleEvents(window, container);
 
-        if (addObj && container.getNumObjects() < 400 && clock.getElapsedTime().asMilliseconds() > 50)
-        {
-            clock.restart();
+        frameCount++;
+        addObjCount++;
 
+        if (addObj && container.getNumObjects() < MAX_OBJS && addObjCount > 3)
+        {
             for (int i=0; i<numStreams; i++)
             {
                 verlet::Object newObject(conf::WINDOW_X / 2 + (i*11), conf::WINDOW_Y / 4, 5);
                 newObject.setVelocity(verlet::Vec2(1, 1));
                 container.addObject(newObject);
             }
+
+            addObjCount = 0;
         }
 
-        // startTiming();
         container.update();
-        // std::cout << "c: " << endTiming() << std::endl;
 
-        // startTiming();
         window.clear(sf::Color::White);
         renderer.run(container);
-        renderer.drawFrames(16);
-
+        renderer.drawFrames(fps);
         window.display();
-        // std::cout << "d: " << endTiming() << std::endl;
 
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        timeAvg = (timeAvg * 0.9f) + duration.count() * 0.1f;
+#if SHOW_FRAMES
+        if (frameClock.getElapsedTime().asMilliseconds() >= 1000)
+        {
+            fps = frameCount;
+            frameCount = 0;
+            frameClock.restart();
+        }
+#endif
+
+#if KILL_AT_FRAME_LIMIT
         if (addObj && startupClock.getElapsedTime().asMilliseconds() > 3000 && timeAvg > 32000)
         {
             std::cout << "STOPPED AT " << container.getNumObjects() << "\n";
             addObj = false;
             window.close();
         }
+#endif
         // std::cout << timeAvg << std::endl;
     }
 }

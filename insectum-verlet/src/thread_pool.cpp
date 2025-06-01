@@ -27,6 +27,17 @@ void ThreadPool::dispatch(std::function<void()> func)
 
 void ThreadPool::joinAll()
 {
+#if THREAD_DEBUG
+    long long allStart = getTime();
     taskQueue_.waitForComplete();
-    
+    long long allEnd = getTime();
+
+    std::cout << "----- " << allEnd - allStart << "\n";
+    for (int i=0; i<numWorkers_; i++)
+    {
+        workers_[i]->printTime();
+    }
+#else
+    taskQueue_.waitForComplete();
+#endif
 }

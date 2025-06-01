@@ -2,11 +2,17 @@
 
 #include <SFML/Graphics.hpp>
 #include <InsectumVerlet.hpp>
+#include <string>
 
 class Renderer
 {
     public:
-        Renderer(sf::RenderTarget& renderTarget): renderTarget_(renderTarget)
+        Renderer(sf::RenderTarget& renderTarget,
+                 int screenWidth,
+                 int screenHeight):
+            renderTarget_(renderTarget),
+            screenWidth_(screenWidth),
+            screenHeight_(screenHeight)
         {
             if (!font.openFromFile("arial.ttf"))
             {
@@ -37,14 +43,18 @@ class Renderer
 
         void drawFrames(int frames)
         {
+            std::string frameStr = std::to_string(frames);
             sf::Text text(font);
-            text.setString("test");
+            text.setString(frameStr);
             text.setFillColor(sf::Color::White);
+            text.setPosition(sf::Vector2f(screenWidth_ - 40, 0));
             renderTarget_.draw(text);
         }
 
     private:
         sf::RenderTarget& renderTarget_;
+        int screenWidth_;
+        int screenHeight_;
         sf::Font font;
 
         void drawConstraint(verlet::Container& container)

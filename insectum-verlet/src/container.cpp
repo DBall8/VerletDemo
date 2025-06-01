@@ -120,64 +120,74 @@ namespace verlet
         const int portionHeight = cellGrid_.getHeight() / (NUM_THREAD * 2);
         const int portionWidth = cellGrid_.getWidth() / (NUM_THREAD * 2);
 
-        startTiming();
+        // std::cout <<"----\n";
+        // startTiming();
         // checkCollisionsRegion(0, cellGrid_.getWidth(), 0, cellGrid_.getHeight());
 
-        for (int i=0; i<cellGrid_.getHeight(); i+=portionHeight*2)
-        {
-            int yStart = i;
-            int yEnd = i+portionHeight;
-            if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
-            std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
-            // int xStart = i;
-            // int xEnd = i+portionWidth;
-            // std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};
-            threadPool_.dispatch(task);
-        }
+        // std::cout << "RUN START\n";
+        // std::cout.flush();
 
-        threadPool_.joinAll();
-
-        for (int i=portionHeight; i<cellGrid_.getHeight(); i+=portionHeight*2)
-        {
-            int yStart = i;
-            int yEnd = i+portionHeight;
-            if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
-            std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
-            // int xStart = i;
-            // int xEnd = i+portionWidth;
-            // std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};            
-            threadPool_.dispatch(task);
-        }
-
-        threadPool_.joinAll();
-
-        // for (int i=0; i<cellGrid_.getWidth(); i+=2)
+        // for (int i=0; i<cellGrid_.getWidth(); i+=portionWidth*2)
         // {
         //     // int yStart = i;
-        //     // int yEnd = i+1;
+        //     // int yEnd = i+portionHeight;
+        //     // if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
         //     // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
         //     int xStart = i;
-        //     int xEnd = i+1;
+        //     int xEnd = i+portionWidth;
+        //     if (xEnd > cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
         //     std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};
         //     threadPool_.dispatch(task);
         // }
 
         // threadPool_.joinAll();
 
-        // for (int i=1; i<cellGrid_.getWidth(); i+=2)
+        // // endTiming();
+        // // startTiming();
+        // // std::cout << "RUN END\n";
+
+        // for (int i=portionWidth; i<cellGrid_.getWidth(); i+=portionWidth*2)
         // {
         //     // int yStart = i;
-        //     // int yEnd = i+1;
+        //     // int yEnd = i+portionHeight;
+        //     // if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
         //     // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
         //     int xStart = i;
-        //     int xEnd = i+1;
+        //     int xEnd = i+portionWidth;
+        //     if (xEnd > cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
         //     std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};            
         //     threadPool_.dispatch(task);
         // }
-        
+
         // threadPool_.joinAll();
 
-        endTiming();
+        for (int i=0; i<cellGrid_.getWidth(); i+=4)
+        {
+            // int yStart = i;
+            // int yEnd = i+1;
+            // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
+            int xStart = i;
+            int xEnd = i+2;
+            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};
+            threadPool_.dispatch(task);
+        }
+
+        threadPool_.joinAll();
+
+        for (int i=2; i<cellGrid_.getWidth(); i+=4)
+        {
+            // int yStart = i;
+            // int yEnd = i+1;
+            // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
+            int xStart = i;
+            int xEnd = i+2;
+            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};            
+            threadPool_.dispatch(task);
+        }
+        
+        threadPool_.joinAll();
+
+        // endTiming();
 
         // float avgChecks = (float)numChecks / (float)getNumObjects();
         // std::cout << avgChecks << " [" << minChecks << "," << maxChecks << "]\n";

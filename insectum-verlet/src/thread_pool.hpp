@@ -4,8 +4,12 @@
 #include <vector>
 #include <mutex>
 #include <queue>
-#include <iostream>
 #include <functional>
+
+#if THREAD_DEBUG
+#include <iostream>
+#include "timing.hpp"
+#endif
 
 struct TaskQueue
 {
@@ -50,6 +54,9 @@ struct TaskWorker
     int id_;
     bool isRunning_ = true;
 
+    long long startTime = 0;
+    long long endTime = 0;
+
     TaskWorker() = default;
 
     TaskWorker(TaskQueue* pQueue, int id):
@@ -75,7 +82,13 @@ struct TaskWorker
             }
             else
             {
+#if THREAD_DEBUG
+                if (startTime == 0) startTime = getTime();
                 task();
+                endTime = getTime();
+#else
+                task();
+#endif
                 pQueue_->taskComplete();
             }
         }
@@ -86,6 +99,14 @@ struct TaskWorker
         isRunning_ = false;
         thread_.join();
     }
+
+#if THREAD_DEBUG
+    void printTime()
+    {
+        std::cout << id_ << " [" << startTime << " , " << endTime << "] " << endTime - startTime << "\n";
+        startTime = 0;
+    }
+#endif
 };
 
 class ThreadPool
