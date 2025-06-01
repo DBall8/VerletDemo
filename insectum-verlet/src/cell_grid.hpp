@@ -38,6 +38,7 @@ namespace verlet
             CellGrid(){}
             int getWidth(){ return width_; }
             int getHeight(){ return height_; }
+            int getCellSize(){ return cellSize_; }
             int getCellX(float worldX);
             int getCellY(float worldY);
             void addObject(Object* pObject);

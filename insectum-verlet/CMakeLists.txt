@@ -1,8 +1,12 @@
+set(CMAKE_CXX_STANDARD 20)
 add_library(insectum-verlet
     "src/cell_grid.cpp"
     "src/container.cpp"
     "src/object.cpp"
     "src/utils.cpp"
+    "src/thread_pool.cpp"
+    "src/timing.cpp"
+    "src/timing.hpp"
     "src/InsectumVerlet.hpp"
 )
 

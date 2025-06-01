@@ -5,19 +5,24 @@ namespace verlet
     int CellGrid::getCellX(float worldX)
     {
         if (worldX == 0) return 0;
-        return floor(width_ / worldX);
+        return floor(worldX / cellSize_);
     }
 
     int CellGrid::getCellY(float worldY)
     {
         if (worldY == 0) return 0;
-        return floor(height_ / worldY);
+        return floor(worldY / cellSize_);
     }
 
     void CellGrid::addObject(Object* pObject)
     {
         int cellX = getCellX(pObject->getPosition().x);
         int cellY = getCellY(pObject->getPosition().y);
+
+        if (cellX < 0) cellX = 0;
+        if (cellY < 0) cellY = 0;
+        if (cellX >= width_) cellX = width_ - 1;
+        if (cellY >= height_) cellY = height_ - 1;
         grid_[cellY][cellX].addObject(pObject);
     }
 

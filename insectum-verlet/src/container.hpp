@@ -3,9 +3,18 @@
 #include <vector>
 #include "object.hpp"
 #include "cell_grid.hpp"
+#include "thread_pool.hpp"
 
 namespace verlet
 {
+    struct Constraint
+    {
+        Vec2 position;
+        float width;
+        float height;
+        bool isCircle;
+    };
+
     class Container
     {
         public:
@@ -16,27 +25,26 @@ namespace verlet
             void setUpdateRate(float rate){ timeStep_ = 1.0f / rate; }
             void setBounciness(float bounciness){ bounciness_ = bounciness; }
             void setPhysicsSubsteps(int substeps) { physicsSubsteps_ = substeps; }
-            void setConstraint(float centerX, float centerY, float radius){ constraintCenter_ = Vec2(centerX, centerY); constraintRadius_ = radius; }
+            void setCircleConstraint(float centerX, float centerY, float radius);
+            void setRectConstraint(float centerX, float centerY, float width, float height);
 
-            float getConstraintRadius(){ return constraintRadius_; }
-            Vec2 getConstraintCenter(){ return constraintCenter_; }
             std::vector<Object> getObjects() { return objects_; }
             int getNumObjects(){ return objects_.size(); }
+            Constraint getConstraint(){ return constraint_; }
 
             void addObject(Object o);
             void update();
 
         private:
-            std::vector<Object> objects_; 
+            std::vector<Object> objects_;
+            Constraint constraint_ = Constraint(Vec2::Zero(), 100, 100, false);
+            ThreadPool threadPool_;
             float gravity_ = 0;
             float timeStep_ = 1.0f / 60.0f;
             float bounciness_ = 0.90f;
             int physicsSubsteps_ = 8;
 
-            float cellSize_ = 10.0f;
-
-            float constraintRadius_ = 1000.0f;
-            Vec2 constraintCenter_ = Vec2::Zero();
+            float cellSize_ = 1.0f;
 
             CellGrid cellGrid_;
 
@@ -45,6 +53,9 @@ namespace verlet
             void checkCollisions();
             void checkCollisionsObject(Object* pObject, std::vector<Object*> objects);
             void checkCollisionsCell(int i, int j);
+            void checkCollisionsRegion(int startX, int endX, int startY, int endY);
+            void checkCircleConstraint(Object* pObject);
+            void checkRectConstraint(Object* pObject);
             void checkConstraints();
             void updateObjects(float dt);
     };

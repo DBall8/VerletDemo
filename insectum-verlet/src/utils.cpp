@@ -28,6 +28,7 @@ namespace verlet
 
     Vec2 Vec2::operator/(float scalar)
     {
+        if (scalar == 0) return Vec2(0,0);
         return Vec2(x / scalar, y / scalar);
     }
 
