@@ -6,8 +6,8 @@
 #include <iostream>
 #include "timing.hpp"
 
-#define MAX_OBJS            400
-#define KILL_AT_FRAME_LIMIT 0
+#define MAX_OBJS            10000
+#define KILL_AT_FRAME_LIMIT 1
 #define SHOW_FRAMES         1
 int main()
 {
@@ -23,6 +23,9 @@ int main()
     container.setPhysicsSubsteps(conf::QUALITY);
     // container.setCircleConstraint(conf::WINDOW_X / 2.0f, conf::WINDOW_Y / 2.0f, conf::WINDOW_Y / 2.0f);
     container.setRectConstraint(conf::WINDOW_X / 2.0f, conf::WINDOW_Y / 2.0f, conf::WINDOW_X, conf::WINDOW_Y);
+
+    // verlet::Object obstacle(conf::WINDOW_X * (0.60), conf::WINDOW_Y * (0.75), 40);
+    // container.addFixedObject(obstacle);
     
     sf::Clock startupClock;
     sf::Clock frameClock;
@@ -30,7 +33,7 @@ int main()
     bool addObj = true;
 
     int addObjCount = 0;
-    int numStreams = 4;
+    int numStreams = 10;
     int fps = 0;
 
     while (window.isOpen())
@@ -46,7 +49,7 @@ int main()
             for (int i=0; i<numStreams; i++)
             {
                 verlet::Object newObject(conf::WINDOW_X / 2 + (i*11), conf::WINDOW_Y / 4, 5);
-                newObject.setVelocity(verlet::Vec2(1, 1));
+                newObject.setVelocity(verlet::Vec2(400, 400));
                 container.addObject(newObject);
             }
 
@@ -57,24 +60,26 @@ int main()
 
         window.clear(sf::Color::White);
         renderer.run(container);
+    #if SHOW_FRAMES
         renderer.drawFrames(fps);
+    #endif
         window.display();
 
-#if SHOW_FRAMES
         if (frameClock.getElapsedTime().asMilliseconds() >= 1000)
         {
             fps = frameCount;
             frameCount = 0;
             frameClock.restart();
         }
-#endif
+
 
 #if KILL_AT_FRAME_LIMIT
-        if (addObj && startupClock.getElapsedTime().asMilliseconds() > 3000 && timeAvg > 32000)
+
+        if (addObj && startupClock.getElapsedTime().asMilliseconds() > 3000 && fps < 58)
         {
             std::cout << "STOPPED AT " << container.getNumObjects() << "\n";
             addObj = false;
-            window.close();
+            // window.close();
         }
 #endif
         // std::cout << timeAvg << std::endl;

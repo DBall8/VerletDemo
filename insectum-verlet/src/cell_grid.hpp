@@ -13,23 +13,26 @@ namespace verlet
 
             void addObject(Object* po)
             {
-                objects_.push_back(po);
+                if (numObjects_ >= MAX_OBJECT_PER_CELL) return;
+                objects_[numObjects_] = po;
+                numObjects_++;
             }
 
             Object* removeObject()
             {
-                if (objects_.size() <= 0) return nullptr;
+                if (numObjects_ <= 0) return nullptr;
 
-                Object* po = objects_.back();
-                objects_.pop_back();
+                numObjects_--;
+                Object* po = objects_[numObjects_];
                 return po;
             }
-            std::vector<Object*> getObjects(){ return objects_; }
-            int getNumObjects(){ return objects_.size(); }
-            void clear(){ objects_.clear(); }
+            Object** getObjects(){ return objects_; }
+            int getNumObjects(){ return numObjects_; }
+            void clear(){ numObjects_ = 0; }
 
         private:
-            std::vector<Object*> objects_;
+            Object* objects_[MAX_OBJECT_PER_CELL] = {nullptr};
+            int numObjects_ = 0;
     };
 
     class CellGrid
@@ -52,6 +55,6 @@ namespace verlet
             float cellSize_ = 0;
             int width_ = 0;
             int height_ = 0;
-            Cell** grid_ = nullptr;
+            Cell* grid_ = nullptr;
     };
 }

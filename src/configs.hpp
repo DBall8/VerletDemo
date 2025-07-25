@@ -4,10 +4,10 @@
 namespace conf
 {
     const static int FRAME_RATE = 60;
-    const static unsigned int WINDOW_X = 1600;
-    const static unsigned int WINDOW_Y = 800;
+    const static unsigned int WINDOW_X = 1900;
+    const static unsigned int WINDOW_Y = 1000;
 
-    const static int QUALITY = 8;
+    const static int QUALITY = 2;
     const static float GRAVITY = 10.0f;
 }
 

@@ -23,7 +23,7 @@ namespace verlet
         if (cellY < 0) cellY = 0;
         if (cellX >= width_) cellX = width_ - 1;
         if (cellY >= height_) cellY = height_ - 1;
-        grid_[cellY][cellX].addObject(pObject);
+        grid_[cellY * width_ + cellX].addObject(pObject);
     }
 
     Cell* CellGrid::getCell(const unsigned int x, const unsigned int y)
@@ -33,17 +33,14 @@ namespace verlet
             return nullptr;
         }
 
-        return &(grid_[y][x]);
+        return &(grid_[y * width_ + x]);
     }
 
     void CellGrid::clear()
     {
-        for (int j=0; j<height_; j++)
+        for (int i=0; i<width_*height_; i++)
         {
-            for (int i=0; i<width_; i++)
-            {
-                grid_[j][i].clear();
-            }
+            grid_[i].clear();
         }
     }
 
@@ -63,11 +60,6 @@ namespace verlet
             return;
         }
 
-        for (int j=0; j<height_; j++)
-        {
-            delete[] grid_[j];
-        }
-
         if (height_ > 0 && width_ > 0 && grid_ != nullptr)
         {
             delete[] grid_;
@@ -78,23 +70,13 @@ namespace verlet
         width_ = 0;
         height_ = 0;
 
-        grid_ = new Cell*[newHeight];
+        grid_ = new Cell[newHeight*newWidth];
         if (grid_ == nullptr)
         {
             std::cout <<"FAILED TO ALLOC\n";
             return;
         }
-
-        for (int j=0; j<newHeight; j++)
-        {
-            grid_[j] = new Cell[newWidth];
-            if (grid_[j] == nullptr)
-            {
-                std::cout <<"FAILED TO ALLOC\n";
-                return;
-            }
-        }
-
+        
         cellSize_ = cellSize;
         width_ = newWidth;
         height_ = newHeight;

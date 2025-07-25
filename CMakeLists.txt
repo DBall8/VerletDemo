@@ -13,6 +13,7 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+add_subdirectory(insectum-utils)
 add_subdirectory(insectum-verlet)
 
 add_executable(main
@@ -21,7 +22,8 @@ add_executable(main
                
 target_compile_features(main PRIVATE cxx_std_17)
 target_link_libraries(main PRIVATE SFML::Graphics
-                           PRIVATE insectum-verlet)
+                           PRIVATE insectum-verlet 
+                           PRIVATE insectum-utils)
 
 add_custom_command(TARGET main PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory

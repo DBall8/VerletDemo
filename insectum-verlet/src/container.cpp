@@ -3,46 +3,28 @@
 #include <thread>
 #include "timing.hpp"
 
-// static void testNum()
-// {
-//     for (int i=0; i<100; i++)
-//     {
-//         std::cout << i << "\n";
-//     }
-// }
-
-// static void testLet()
-// {
-//     for (int i=0; i<100; i++)
-//     {
-//         std::cout << (char)('a' + (i % 23)) << "\n";
-//     }
-// }
-
 const int NUM_THREAD = 4;
-
-static int numChecks = 0;
-static int maxChecks = 0;
-static int minChecks = 99000;
-static bool doOnce = false;
 
 namespace verlet
 {
     Container::Container():
         threadPool_(ThreadPool(NUM_THREAD))
     {
-        // std::function<void()> testNumFunc = testNum;
-        // std::function<void()> testLetFunc = testLet;
-        // std::cout << "START\n";
-        // ThreadPool pool(2);
-        // pool.dispatch(testNumFunc);
-        // pool.dispatch(testLetFunc);
-        // std::cout << "JOIN\n";
-        // pool.joinAll();
-        // std::cout << "DONE\n";
     }
 
     Container::~Container(){}
+
+    void Container::setUpdateRate(float rate)
+    {
+        timeStep_ = 1.0f / rate;
+        subStepTime_ = timeStep_ / physicsSubsteps_;
+    }
+
+    void Container::setPhysicsSubsteps(int substeps)
+    {
+        physicsSubsteps_ = substeps;
+        subStepTime_ = timeStep_ / physicsSubsteps_;
+    }
 
     void Container::setCircleConstraint(float centerX, float centerY, float radius)
     {
@@ -73,6 +55,12 @@ namespace verlet
         }
     }
 
+    void Container::addFixedObject(Object o)
+    {
+        o.setFixed(true);
+        addObject(o);
+    }
+
     void Container::applyGravity()
     {
         float gravityScaled = gravity_ / timeStep_;
@@ -92,40 +80,13 @@ namespace verlet
 
     void Container::checkCollisions()
     {
-        numChecks = 0;
-
-        // startTiming();
         addObjectsToGrid();
 
-        numChecks = 0;
-        maxChecks = 0;
-        minChecks = 99000;
+        // const int portionHeight = cellGrid_.getHeight() / (NUM_THREAD * 2);
+        // const int portionWidth = cellGrid_.getWidth() / (NUM_THREAD * 2);
 
-        // static bool doOnce = true;
-        // if (getNumObjects() >= 400 && doOnce)
-        // {
-        //     for (int j=0; j<cellGrid_.getHeight(); j++)
-        //     {
-        //         for (int i=0; i<cellGrid_.getWidth(); i++)
-        //         {
-        //             std::cout << cellGrid_.getCell(i, j)->getNumObjects() << " ";
-        //         }
-        //         std::cout << std::endl;
-        //     }
-        //     doOnce = false;
-        // }
 
-        // std::cout << "g: " << endTiming() * physicsSubsteps_ << std::endl;
-        
-        const int portionHeight = cellGrid_.getHeight() / (NUM_THREAD * 2);
-        const int portionWidth = cellGrid_.getWidth() / (NUM_THREAD * 2);
-
-        // std::cout <<"----\n";
-        // startTiming();
         // checkCollisionsRegion(0, cellGrid_.getWidth(), 0, cellGrid_.getHeight());
-
-        // std::cout << "RUN START\n";
-        // std::cout.flush();
 
         // for (int i=0; i<cellGrid_.getWidth(); i+=portionWidth*2)
         // {
@@ -141,10 +102,6 @@ namespace verlet
         // }
 
         // threadPool_.joinAll();
-
-        // // endTiming();
-        // // startTiming();
-        // // std::cout << "RUN END\n";
 
         // for (int i=portionWidth; i<cellGrid_.getWidth(); i+=portionWidth*2)
         // {
@@ -164,11 +121,11 @@ namespace verlet
         for (int i=0; i<cellGrid_.getWidth(); i+=4)
         {
             // int yStart = i;
-            // int yEnd = i+1;
+            // int yEnd = i+2;
             // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
             int xStart = i;
-            int xEnd = i+2;
-            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};
+            int xEnd = i+1;
+            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight()-1);};
             threadPool_.dispatch(task);
         }
 
@@ -177,27 +134,22 @@ namespace verlet
         for (int i=2; i<cellGrid_.getWidth(); i+=4)
         {
             // int yStart = i;
-            // int yEnd = i+1;
+            // int yEnd = i+2;
             // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
             int xStart = i;
-            int xEnd = i+2;
-            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};            
+            int xEnd = i+1;
+            std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight()-1);};            
             threadPool_.dispatch(task);
         }
         
         threadPool_.joinAll();
-
-        // endTiming();
-
-        // float avgChecks = (float)numChecks / (float)getNumObjects();
-        // std::cout << avgChecks << " [" << minChecks << "," << maxChecks << "]\n";
     }
 
     void Container::checkCollisionsRegion(int startX, int endX, int startY, int endY)
     {
-        for (int j=startY; j<endY; j++)
+        for (int j=startY; j<=endY; j++)
         {
-            for (int i=startX; i<endX; i++)
+            for (int i=startX; i<=endX; i++)
             {
                 checkCollisionsCell(i, j);
             }
@@ -228,17 +180,18 @@ namespace verlet
             {
                 for (int i=minX; i<=maxX; i++)
                 {
-                    checkCollisionsObject(pObject, cellGrid_.getCell(i, j)->getObjects());
+                    checkCollisionsObject(pObject, cellGrid_.getCell(i, j));
                 }
             }
 
         }
     }
 
-    void Container::checkCollisionsObject(Object* pObject, std::vector<Object*> objects)
+    void Container::checkCollisionsObject(Object* pObject, Cell* pCell)
     {
-        for (Object* pOtherObject: objects)
+        for (int i=0; i<pCell->getNumObjects(); i++)
         {
+            Object* pOtherObject = pCell->getObjects()[i];
             float totalRadius = pObject->getRadius() + pOtherObject->getRadius();        // If they are closer than this distance, they're overlapping
             Vec2 overlapVector = pOtherObject->getPosition() - pObject->getPosition();   // Relative positions of the centers
 
@@ -255,11 +208,9 @@ namespace verlet
                 float ratio2 = pObject->getRadius()      / (pObject->getRadius() + pOtherObject->getRadius());  // Mass ratio for object 2
                 Vec2 reaction = overlapUnit * overlap * 0.5f * bounciness_;                                     // Reaction force, directional
 
-                pObject->setPosition(pObject->getPosition() - (reaction * ratio1));
-                pOtherObject->setPosition(pOtherObject->getPosition() + (reaction * ratio2));
+                if (!pObject->isFixed())      pObject->setPosition(pObject->getPosition() - (reaction * ratio1));
+                if (!pOtherObject->isFixed()) pOtherObject->setPosition(pOtherObject->getPosition() + (reaction * ratio2));
             }
-
-            numChecks++;
         }
     }
 
@@ -288,30 +239,31 @@ namespace verlet
 
     void  Container::checkRectConstraint(Object* pObject)
     {
-        float newX = pObject->getPosition().x;
-        float newY = pObject->getPosition().y;
+        float diffX = 0;
+        float diffY = 0;
 
-        if (newX < constraint_.position.x + pObject->getRadius())
+        if (pObject->getPosition().x < constraint_.position.x + pObject->getRadius())
         {
-            newX = constraint_.position.x + pObject->getRadius();
+            diffX = constraint_.position.x + pObject->getRadius() - pObject->getPosition().x;
         }
 
-        if (newX > constraint_.position.x + constraint_.width - pObject->getRadius())
+        if (pObject->getPosition().x > constraint_.position.x + constraint_.width - pObject->getRadius())
         {
-            newX = constraint_.position.x + constraint_.width - pObject->getRadius();
+            diffX = constraint_.position.x + constraint_.width - pObject->getRadius() - pObject->getPosition().x;
         }
 
-        if (newY < constraint_.position.y + pObject->getRadius())
+        if (pObject->getPosition().y < constraint_.position.y + pObject->getRadius())
         {
-            newY = constraint_.position.y + pObject->getRadius();
+            diffY = constraint_.position.y + pObject->getRadius() - pObject->getPosition().y;
         }
 
-        if (newY > constraint_.position.y + constraint_.height - pObject->getRadius())
+        if (pObject->getPosition().y > constraint_.position.y + constraint_.height - pObject->getRadius())
         {
-            newY = constraint_.position.y + constraint_.height - pObject->getRadius();
+            diffY = constraint_.position.y + constraint_.height - pObject->getRadius() - pObject->getPosition().y;
         }
 
-        pObject->setPosition(Vec2(newX, newY));
+        Vec2 newPosition = pObject->getPosition() + (Vec2(diffX, diffY) * bounciness_);
+        pObject->setPosition(newPosition);
     }
 
     void Container::checkConstraints()
@@ -342,14 +294,12 @@ namespace verlet
 
     void Container::update()
     {
-
-        float dt = timeStep_ / physicsSubsteps_;
-        for (float time = dt; time <= timeStep_; time += dt)
+        for (float time = subStepTime_; time <= timeStep_; time += subStepTime_)
         {
             applyGravity();
             checkCollisions();
             checkConstraints();
-            updateObjects(dt);
+            updateObjects(subStepTime_);
         }
     }
 }

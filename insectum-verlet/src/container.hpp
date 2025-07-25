@@ -22,9 +22,9 @@ namespace verlet
             ~Container();
 
             void setGravity(float gravity){ gravity_ = gravity; }
-            void setUpdateRate(float rate){ timeStep_ = 1.0f / rate; }
+            void setUpdateRate(float rate);
             void setBounciness(float bounciness){ bounciness_ = bounciness; }
-            void setPhysicsSubsteps(int substeps) { physicsSubsteps_ = substeps; }
+            void setPhysicsSubsteps(int substeps);
             void setCircleConstraint(float centerX, float centerY, float radius);
             void setRectConstraint(float centerX, float centerY, float width, float height);
 
@@ -33,6 +33,7 @@ namespace verlet
             Constraint getConstraint(){ return constraint_; }
 
             void addObject(Object o);
+            void addFixedObject(Object o);
             void update();
 
         private:
@@ -43,6 +44,7 @@ namespace verlet
             float timeStep_ = 1.0f / 60.0f;
             float bounciness_ = 0.90f;
             int physicsSubsteps_ = 8;
+            float subStepTime_ = timeStep_ / physicsSubsteps_;
 
             float cellSize_ = 1.0f;
 
@@ -51,7 +53,7 @@ namespace verlet
             void applyGravity();
             void addObjectsToGrid();
             void checkCollisions();
-            void checkCollisionsObject(Object* pObject, std::vector<Object*> objects);
+            void checkCollisionsObject(Object* pObject, Cell* pCell);
             void checkCollisionsCell(int i, int j);
             void checkCollisionsRegion(int startX, int endX, int startY, int endY);
             void checkCircleConstraint(Object* pObject);

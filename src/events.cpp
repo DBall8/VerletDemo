@@ -19,7 +19,7 @@ void handleEvents(sf::Window& window, verlet::Container& container)
 
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>())
         {
-            container.addObject(verlet::Object(mouseClick->position.x, mouseClick->position.y, 20));
+            container.addFixedObject(verlet::Object(mouseClick->position.x, mouseClick->position.y, 20));
         }
     }
 }
