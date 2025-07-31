@@ -56,5 +56,7 @@ namespace verlet
             int width_ = 0;
             int height_ = 0;
             Cell* grid_ = nullptr;
+
+            const int getCellIndex(const int x, const int y);
     };
 }

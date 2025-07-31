@@ -2,6 +2,12 @@
 
 namespace verlet
 {
+    const int CellGrid::getCellIndex(const int x, const int y)
+    {
+        //return x * height_ + y;
+        return y * width_ + x;
+    }
+
     int CellGrid::getCellX(float worldX)
     {
         if (worldX == 0) return 0;
@@ -23,7 +29,7 @@ namespace verlet
         if (cellY < 0) cellY = 0;
         if (cellX >= width_) cellX = width_ - 1;
         if (cellY >= height_) cellY = height_ - 1;
-        grid_[cellY * width_ + cellX].addObject(pObject);
+        grid_[getCellIndex(cellX, cellY)].addObject(pObject);
     }
 
     Cell* CellGrid::getCell(const unsigned int x, const unsigned int y)
@@ -33,7 +39,7 @@ namespace verlet
             return nullptr;
         }
 
-        return &(grid_[y * width_ + x]);
+        return &(grid_[getCellIndex(x, y)]);
     }
 
     void CellGrid::clear()

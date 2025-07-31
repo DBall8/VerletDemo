@@ -82,62 +82,23 @@ namespace verlet
     {
         addObjectsToGrid();
 
-        // const int portionHeight = cellGrid_.getHeight() / (NUM_THREAD * 2);
-        // const int portionWidth = cellGrid_.getWidth() / (NUM_THREAD * 2);
-
-
-        // checkCollisionsRegion(0, cellGrid_.getWidth(), 0, cellGrid_.getHeight());
-
-        // for (int i=0; i<cellGrid_.getWidth(); i+=portionWidth*2)
-        // {
-        //     // int yStart = i;
-        //     // int yEnd = i+portionHeight;
-        //     // if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
-        //     // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
-        //     int xStart = i;
-        //     int xEnd = i+portionWidth;
-        //     if (xEnd > cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
-        //     std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};
-        //     threadPool_.dispatch(task);
-        // }
-
-        // threadPool_.joinAll();
-
-        // for (int i=portionWidth; i<cellGrid_.getWidth(); i+=portionWidth*2)
-        // {
-        //     // int yStart = i;
-        //     // int yEnd = i+portionHeight;
-        //     // if (yEnd > cellGrid_.getHeight()) yEnd = cellGrid_.getHeight();
-        //     // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
-        //     int xStart = i;
-        //     int xEnd = i+portionWidth;
-        //     if (xEnd > cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
-        //     std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight());};            
-        //     threadPool_.dispatch(task);
-        // }
-
-        // threadPool_.joinAll();
-
-        for (int i=0; i<cellGrid_.getWidth(); i+=4)
+        const static int chunkSize = 2;
+        for (int i=0; i<cellGrid_.getWidth(); i+=(chunkSize*2))
         {
-            // int yStart = i;
-            // int yEnd = i+2;
-            // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
             int xStart = i;
-            int xEnd = i+1;
+            int xEnd = i+chunkSize-1;
+            if (xEnd >= cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
             std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight()-1);};
             threadPool_.dispatch(task);
         }
 
         threadPool_.joinAll();
 
-        for (int i=2; i<cellGrid_.getWidth(); i+=4)
+        for (int i=chunkSize; i<cellGrid_.getWidth(); i+=(chunkSize*2))
         {
-            // int yStart = i;
-            // int yEnd = i+2;
-            // std::function<void()> task = [this, yStart, yEnd](){checkCollisionsRegion(0, cellGrid_.getWidth(), yStart, yEnd);};
             int xStart = i;
-            int xEnd = i+1;
+            int xEnd = i+chunkSize-1;
+            if (xEnd >= cellGrid_.getWidth()) xEnd = cellGrid_.getWidth();
             std::function<void()> task = [this, xStart, xEnd](){checkCollisionsRegion(xStart, xEnd, 0, cellGrid_.getHeight()-1);};            
             threadPool_.dispatch(task);
         }
