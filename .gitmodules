@@ -1,0 +1,3 @@
+[submodule "insectum-verlet"]
+	path = insectum-verlet
+	url = https://github.com/DBall8/InsectumVerlet.git
